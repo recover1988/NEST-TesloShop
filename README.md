@@ -221,3 +221,83 @@ export class ProductsModule { }
 ```
 
 Con esta configuracion esta sincornizada el entity y la base de datos.
+
+## Agregar el prefijo al endpoint
+
+Ir al `main.ts` y agregar con el metodo `.setGlobalPrefix()` el path `api/`
+
+```
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  app.setGlobalPrefix('api');
+
+  await app.listen(3000);
+}
+bootstrap();
+
+```
+
+## Configurar DTO para validar la entrada de datos
+
+Instalar
+
+```
+npm i class-validator class-transformer
+```
+
+Para poder usar las validaciones en los DTOs.
+Para usar las validaciones de forma global hay que configurar en el main.ts
+
+```
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    })
+  );
+```
+
+El whitelist solo toma los valores declarados en el DTO y el forbidNonWhitelisted da un error cuando se envia mas datos de los esperados.
+
+Podemos crear el DTO:
+
+```
+import { IsArray, IsIn, IsInt, IsNumber, IsOptional, IsPositive, IsString, MinLength } from "class-validator";
+
+export class CreateProductDto {
+    @IsString()
+    @MinLength(1)
+    title: string;
+
+    @IsNumber()
+    @IsPositive()
+    @IsOptional()
+    price?: number;
+
+    @IsString()
+    @IsOptional()
+    description?: string;
+
+    @IsString()
+    @IsOptional()
+    slug?: string;
+
+    @IsInt()
+    @IsPositive()
+    @IsOptional()
+    stock?: number;
+
+    @IsString({ each: true })
+    @IsArray()
+    sizes: string[];
+
+    @IsIn(['men', 'women', 'kid', 'unisex'])
+    gender: string;
+}
+```
+
+Con las instalaciones podemos usar los decoradores.
