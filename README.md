@@ -93,3 +93,70 @@ Levantar la imagen:
 ```
 docker-compose up -d
 ```
+
+## Usar variables de entorno
+
+Instalar
+
+```
+npm i @nestjs/config
+```
+
+Ir a `app.module.ts` importar
+
+```
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot(),
+  ],
+  controllers: [],
+  providers: [],
+})
+export class AppModule { }
+```
+
+Con esta configuracion ya podemos usar variables de entorno.
+
+## Usar TypeOrm
+
+Instalar
+
+```
+npm i @nestjs/typeorm typeorm
+```
+
+y en el `app.module.ts` hay q importarlo
+
+```
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot(),
+
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: process.env.DB_HOST,
+      port: +process.env.DB_PORT,
+      database: process.env.DB_NAME,
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      autoLoadEntities: true,
+      synchronize: true,
+    }),
+  ],
+  controllers: [],
+  providers: [],
+})
+export class AppModule { }
+
+```
+
+El `synchronize` se usa en false cuando estemos en produccion y los cambios en la abse de datos se hace mediante migraciones.
+
+Con esta configuracion ya podemos usar la base de datos postgres.
