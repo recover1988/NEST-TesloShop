@@ -334,8 +334,10 @@ export class ProductsService {
   ................
 }
 ```
+
 En el `@InjectRepository(Product)` insertamos el entity `Producot` y en el tipo del `Repository<Product>` tambien insertamos el product de esta forma tenemos los metodos para poder realizar consultas e inserciones en al base de datos.
 Crear el producto:
+
 ```
   async create(createProductDto: CreateProductDto) {
 
@@ -354,3 +356,38 @@ Crear el producto:
 
   }
 ```
+
+## Manejo de Errores
+
+Trataremos de hacer la menor cantidad de consultas a la base de datos. Para eso podemos usar el mismo `error` para poder dar un mensake acorde.
+
+### Mostar errores de la forma de nest
+
+Tenemos que crear una propiedad privada de logger desde el servicio.
+
+```
+import { Logger } from '@nestjs/common';
+
+private readonly logger = new Logger('ProductsService');
+```
+
+Y luego usamos el `logger` como un console.log para mostrar el error en consola
+
+```
+this.logger.error(error);
+```
+
+y le mandamos el error del `try/catch`, Nest hace todo el formateo del mensaje.
+Ahora podemos crear una funcion a la cual le podemos agregar mas excepciones:
+
+```
+  private handleDBException(error: any) {
+    if (error.code === '23505')
+      throw new BadRequestException(error.detail);
+    // console.log(error)
+    this.logger.error(error)
+    throw new InternalServerErrorException('Unexpected error, check server logs')
+  }
+```
+
+Y usar en try/catch en la parte del errror.
