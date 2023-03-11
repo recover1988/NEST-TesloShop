@@ -410,3 +410,41 @@ Estos decoradores se usan en el Entity. Y son transformaciones que suceden cuand
             .replaceAll("'", '');
     }
 ```
+
+## Get y Delete con TypeORM
+
+Para poder verificar que los id son de tipo `UUID` podemos usar en el controllador que verifique con el pipe `ParseUUIDPipe`, de la siguiente forma:
+
+```
+  @Get(':id')
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.productsService.findOne(id);
+  }
+
+  @Delete(':id')
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.productsService.remove(id);
+  }
+
+```
+
+Ahora en el servicio podemos manejar la logica sabiendo que sino envia un `UUID` el pipe lo interceptara y lanzara un error.
+
+```
+  async findAll() {
+    const products = await this.productRepository.find();
+    return products;
+  }
+
+  async findOne(id: string) {
+    const product = await this.productRepository.findOneBy({ id });
+    if (!product) throw new NotFoundException('Product with id not found');
+    return product;
+  }
+
+  async remove(id: string) {
+    const product = await this.findOne(id);
+    await this.productRepository.remove(product);
+    return;
+  }
+```
