@@ -301,3 +301,56 @@ export class CreateProductDto {
 ```
 
 Con las instalaciones podemos usar los decoradores.
+
+## Insertar Usando TypeORM
+
+En vez de usar el `new Producto()` tenemos que isar el patron repositorio que es indicado para hacer las inserciones a la base de datos.
+
+Que es el patron repositorio?
+
+```
+El patrón repositorio consiste en separar la lógica que recupera los datos y los asigna a un modelo de entidad de la lógica de negocios que actúa sobre el modelo, esto permite que la lógica de negocios sea independiente del tipo de dato que comprende la capa de origen de datos, en pocas palabras un repositorio media entre el dominio y las capas de mapeo de datos, actuando como una colección de objetos de dominio en memoria (M. Fowler), ahora bien, ¿qué es el patrón unidad de trabajo?
+Este centraliza las conexiones a la base de datos realizando un seguimiento de todo lo que sucede durante una transacción cuando se usan capas de datos y revertirá la transacción si Commit() no se ha invocado o existen incongruencias lógicas.
+```
+
+Primero hay que inyectar el repositorio en el servicio para poder hacer las inserciones y las queries.
+
+```
+/product.service.ts
+
+import { Injectable } from '@nestjs/common';
+import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Product } from './entities/product.entity';
+
+@Injectable()
+export class ProductsService {
+  constructor(
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
+  ) { }
+  ................
+}
+```
+En el `@InjectRepository(Product)` insertamos el entity `Producot` y en el tipo del `Repository<Product>` tambien insertamos el product de esta forma tenemos los metodos para poder realizar consultas e inserciones en al base de datos.
+Crear el producto:
+```
+  async create(createProductDto: CreateProductDto) {
+
+    try {
+      // crear el producto(3 formas), no lo graba en la base de datos
+      const product = this.productRepository.create(createProductDto);
+      // guardar en base de datos
+      await this.productRepository.save(product);
+
+      return product;
+
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException('Ayuda');
+    }
+
+  }
+```
