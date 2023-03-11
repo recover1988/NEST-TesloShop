@@ -73,19 +73,21 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_NAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     container_name: teslodb
     volumes:
       - ./postgres:/var/lib/postgresql/data
 ```
 
-Crearse un `.env`
+Crearse un `.env`, usar el `.env.template`
 
 ```
-DB_PASSWORD=12345
-
+DB_PASSWORD=MySecr3tPassWord@as2
 DB_NAME=TesloDB
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
 ```
 
 Levantar la imagen:
@@ -160,3 +162,62 @@ export class AppModule { }
 El `synchronize` se usa en false cuando estemos en produccion y los cambios en la abse de datos se hace mediante migraciones.
 
 Con esta configuracion ya podemos usar la base de datos postgres.
+
+## TypeORM - Entity - Product
+
+Generar un nuevo recurso de CRUD:
+
+```
+ nest g res products --no-spec
+
+? What transport layer do you use? REST API
+? Would you like to generate CRUD entry points? Yes
+CREATE src/products/products.controller.ts (957 bytes)
+CREATE src/products/products.module.ts (268 bytes)
+CREATE src/products/products.service.ts (651 bytes)
+CREATE src/products/dto/create-product.dto.ts (33 bytes)
+CREATE src/products/dto/update-product.dto.ts (181 bytes)
+CREATE src/products/entities/product.entity.ts (24 bytes)
+UPDATE package.json (1980 bytes)
+UPDATE src/app.module.ts (644 bytes)
+✔ Packages installed successfully.
+```
+
+Definir el Entitity que es una representacion del objeto en la base de datos(seria una tabla).
+
+```
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+
+@Entity()
+export class Product {
+
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
+
+    @Column('text', {
+        unique: true,
+    })
+    title: string;
+}
+```
+
+Para hacer la conexion del entity con la base de datos tenemos que ademas de definirla hacer una importacion en el modulo.
+
+```
+import { Module } from '@nestjs/common';
+import { ProductsService } from './products.service';
+import { ProductsController } from './products.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Product } from './entities/product.entity';
+
+@Module({
+  controllers: [ProductsController],
+  providers: [ProductsService],
+  imports: [
+    TypeOrmModule.forFeature([Product]),
+  ]
+})
+export class ProductsModule { }
+```
+
+Con esta configuracion esta sincornizada el entity y la base de datos.
