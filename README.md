@@ -448,3 +448,69 @@ Ahora en el servicio podemos manejar la logica sabiendo que sino envia un `UUID`
     return;
   }
 ```
+
+## Paginar en TypeORM
+
+#### Creamos el modulo common
+
+Creamos un nuevo modulo donde estara el pagination dto porque es una propiedad que puede ser usada en diferntes endpoints.
+
+```
+nest g mo common
+```
+
+Dentro de esta carpeta creamos los dtos.
+
+#### DTO Pagination
+
+Crear otro DTO en un modulo `common`:
+
+```
+/common/dtos/pagination.dto.ts
+
+import { Type } from "class-transformer";
+import { IsOptional, IsPositive, Min } from "class-validator";
+
+export class PaginationDto {
+    @IsOptional()
+    @IsPositive()
+    @Type(() => Number) //enableImplicitConvertions: true
+    limit?: number;
+
+    @IsOptional()
+    @Min(0)
+    @Type(() => Number) //enableImplicitConvertions: true
+    offset?: number;
+}
+```
+
+Con este DTO especificamos las propiedades que necsitamos para el pagination que son el `limit` y el `offset`.
+Aca tambien hacemos la conversion a numero del query.
+
+#### Query
+
+Tenemos que verificar que por `@Query()` nos envien las propiedeades que necesitamos para la paginacion.
+
+```
+  @Get()
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.productsService.findAll(paginationDto);
+  }
+```
+
+#### Modificar el getAll del servicio
+
+Modificamos el getAll() para que pueda usar las propiedades de la paginacion y si no viene ponemos valores por default.
+
+```
+  async findAll(paginationDto: PaginationDto) {
+    const { limit = 10, offset = 0 } = paginationDto;
+    const products = await this.productRepository.find({
+      take: limit,
+      skip: offset,
+    });
+    return products;
+  }
+```
+
+El `find` acepta objetos con las propiedeades que necesitamos que son el `take` y el `skip`, que son los valores de la paginacion.
