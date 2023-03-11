@@ -390,4 +390,23 @@ Ahora podemos crear una funcion a la cual le podemos agregar mas excepciones:
   }
 ```
 
-Y usar en try/catch en la parte del errror.
+Y usar en try/catch en la parte del error.
+
+## BeforeInsert y BeforeUpdate
+
+Estos decoradores se usan en el Entity. Y son transformaciones que suceden cuando la data pasa por el.
+
+```
+/entities/product.entity.ts
+
+    @BeforeInsert()
+    checkSlugInsert() {
+        if (!this.slug) {
+            this.slug = this.title;
+        }
+        this.slug = this.slug
+            .toLowerCase()
+            .replaceAll(' ', '_')
+            .replaceAll("'", '');
+    }
+```
