@@ -576,3 +576,32 @@ Para hacer consultas mas complejas usamos la funcion para crear querys.
 
 Para cambiar de mayus a minusc o viceversa en postgres tenemos los metodos UPPER() y LOWER().
 La funcion createQueryBuilder nos permite utilizar metodos de SQL para manejar las busquedas por eso acepta el `OR`; y el `=:` indica que los valores que siguen vienen del objeto que entra como segundo parametro en la funcion.
+
+## Update en TypeORM
+
+Para el update ponemos la validacion de ParseUUIDPipe en el path del controlador, y luego en el servicio realizamos el update.
+
+```
+  async update(id: string, updateProductDto: UpdateProductDto) {
+
+    const product = await this.productRepository.preload({
+      id: id,
+      ...updateProductDto
+    });
+    if (!product) throw new NotFoundException(`Product with id: ${id} not found`);
+
+    try {
+
+      await this.productRepository.save(product);
+
+      return product;
+
+    } catch (error) {
+      this.handleDBException(error);
+    }
+  }
+```
+
+Con `this.productRepository.preload()` buscamos por el id y luego sobreescribimos las propiedades con el destructuring del `updateProductDto`, este procedimiento solo prepara la informacion, luego hay que guardarlos con la funcions `save()` y pasarle el objeto product. En el controlador podemos retorna si el await ya que se resuleven las promesas, pero es mejor estar seguros.
+
+## BeforeUpdate
