@@ -546,3 +546,33 @@ import {validate as isUUID} from 'uuid';
 ```
 
 Se puede ver que en la funcion findOne tenemos una validacion de que el term es UUID y sino se busca por slug
+
+## QueryBuilder
+
+Para hacer consultas mas complejas usamos la funcion para crear querys.
+
+```
+  async findOne(term: string) {
+    let product: Product;
+    if (isUUID(term)) {
+      product = await this.productRepository.findOneBy({ id: term });
+    } else {
+
+  --> const queryBuilder = this.productRepository.createQueryBuilder();
+      product = await queryBuilder.where('UPPER(title) =:title or slug =:slug', {
+        title: term.toUpperCase(),
+        slug: term.toLowerCase(),
+      }).getOne();
+
+    }
+
+    if (!product) {
+      throw new NotFoundException(`Product with ${term} not found`);
+    }
+
+    return product;
+  }
+```
+
+Para cambiar de mayus a minusc o viceversa en postgres tenemos los metodos UPPER() y LOWER().
+La funcion createQueryBuilder nos permite utilizar metodos de SQL para manejar las busquedas por eso acepta el `OR`; y el `=:` indica que los valores que siguen vienen del objeto que entra como segundo parametro en la funcion.
