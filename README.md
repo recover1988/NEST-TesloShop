@@ -514,3 +514,35 @@ Modificamos el getAll() para que pueda usar las propiedades de la paginacion y s
 ```
 
 El `find` acepta objetos con las propiedeades que necesitamos que son el `take` y el `skip`, que son los valores de la paginacion.
+
+## Buscar por slug o uuid
+
+Instalar uuid:
+
+```
+npm i uuid
+npm i --save-dev @types/uuid
+```
+
+Primero validamos con la funcion validate de uuid
+
+```
+import {validate as isUUID} from 'uuid';
+
+  async findOne(term: string) {
+    let product: Product;
+    if (isUUID(term)) {
+      product = await this.productRepository.findOneBy({ id: term });
+    } else {
+      product = await this.productRepository.findOneBy({ slug: term });
+    }
+
+    if (!product) {
+      throw new NotFoundException(`Product with ${term} not found`);
+    }
+
+    return product;
+  }
+```
+
+Se puede ver que en la funcion findOne tenemos una validacion de que el term es UUID y sino se busca por slug
