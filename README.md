@@ -697,10 +697,10 @@ Para definir la relacion entre las dos tablas tenemos que crearla con los decora
 
     @OneToMany(
         () => ProductImage,
-        productImage => productImage.product,
+        (productImage) => productImage.product,
         { cascade: true }
     )
-    images?: ProductImage;
+    images?: ProductImage[];
 ```
 
 ```
@@ -714,3 +714,40 @@ Para definir la relacion entre las dos tablas tenemos que crearla con los decora
 ```
 
 En el product.entity.ts agregamos la relacion de `@OneToMany()`, este acepta 2-3 argumentos, el primero indica qel tipo de objecto el cual estamos esperando que es `ProductImage` o `Product`, el segundo como se va a relacionar la otra tabla con esta tabla y el tercero son las configuraciones, en este caso `cascada: true` indica que si eliminamos o modificamos el producto tambien lo hace la relacion.
+
+## Crear Imagenes de producto
+
+En el dto de `create-product.dto.ts` tenemos que agregar la propiedad images:
+
+```
+    @IsString({ each: true })
+    @IsArray()
+    @IsOptional()
+    images?: string[];
+```
+
+Luego en el servicio al metodo de crear producto le agregamos la creacion de imagenes:
+
+```
+  async create(createProductDto: CreateProductDto) {
+    try {
+      const { images = [], ...productDetails } = createProductDto;
+      // crear el producto(3 formas), no lo graba en la base de datos
+      const product = this.productRepository.create({
+        ...productDetails,
+        images: images.map(image => this.productImageRepository.create({ url: image }))
+      });
+      // guardar en base de datos
+      await this.productRepository.save(product);
+
+      return { ...product, images };
+
+    } catch (error) {
+
+      this.handleDBException(error);
+
+    }
+  }
+```
+
+Si las imagenes no vienen se pone un array vacio, y tampoco en el momento de crear hay que especificar el id del producto ya que TypeORM lo infiere al estar creado dentro del producto, el cual luego se graba.

@@ -7,7 +7,7 @@ import { validate as isUUID } from 'uuid';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
-import { Product } from './entities';
+import { Product, ProductImage } from './entities';
 
 @Injectable()
 export class ProductsService {
@@ -17,17 +17,25 @@ export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+
+    @InjectRepository(ProductImage)
+    private readonly productImageRepository: Repository<ProductImage>,
   ) { }
 
-  async create(createProductDto: CreateProductDto) {
 
+
+  async create(createProductDto: CreateProductDto) {
     try {
+      const { images = [], ...productDetails } = createProductDto;
       // crear el producto(3 formas), no lo graba en la base de datos
-      const product = this.productRepository.create(createProductDto);
+      const product = this.productRepository.create({
+        ...productDetails,
+        images: images.map(image => this.productImageRepository.create({ url: image }))
+      });
       // guardar en base de datos
       await this.productRepository.save(product);
 
-      return product;
+      return { ...product, images };
 
     } catch (error) {
 
@@ -70,7 +78,8 @@ export class ProductsService {
 
     const product = await this.productRepository.preload({
       id: id,
-      ...updateProductDto
+      ...updateProductDto,
+      images: []
     });
     if (!product) throw new NotFoundException(`Product with id: ${id} not found`);
 
