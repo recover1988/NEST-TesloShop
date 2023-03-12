@@ -617,3 +617,30 @@ Ya que tenemos el `slug` obligatorio podemos hacer la transformacion en el Entit
             .replaceAll("'", '');
     }
 ```
+
+## Nueva Columna - tags
+
+Para agregar una nueva columna a nuestra base de datos, tenemos que declararla en el entities, y tambien en el dto para que acepte el nuevo valor.
+
+```
+/entities/product.entity.ts
+
+    @Column('text', {
+        array: true,
+        default: []
+    })
+    tags: string[];
+
+```
+
+```
+/dto/create-product.dto.ts
+
+    @IsString({ each: true })
+    @IsArray()
+    @IsOptional()
+    tags: string[];
+```
+
+De esta forma estamos creando con el entity la nueva columna en la base de datos y con el dto estamos aceptando el nuevo valor como entrada.
+`@IsOptional()` porque ya tenemos un valor por defecto que es [] , ose el array vacio.
