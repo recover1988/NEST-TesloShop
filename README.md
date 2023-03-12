@@ -605,3 +605,15 @@ Para el update ponemos la validacion de ParseUUIDPipe en el path del controlador
 Con `this.productRepository.preload()` buscamos por el id y luego sobreescribimos las propiedades con el destructuring del `updateProductDto`, este procedimiento solo prepara la informacion, luego hay que guardarlos con la funcions `save()` y pasarle el objeto product. En el controlador podemos retorna si el await ya que se resuleven las promesas, pero es mejor estar seguros.
 
 ## BeforeUpdate
+
+Ya que tenemos el `slug` obligatorio podemos hacer la transformacion en el Entity:
+
+```
+    @BeforeUpdate()
+    checkSlugUpdate() {
+        this.slug = this.slug
+            .toLowerCase()
+            .replaceAll(' ', '_')
+            .replaceAll("'", '');
+    }
+```
