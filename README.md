@@ -687,3 +687,30 @@ export class ProductsModule { }
 ```
 
 Lo declaramos en el `TypeOrmModule.forFeature([])` en el array, y de esta manera se genera la tabla.
+
+## OneToMany y ManyToOne
+
+Para definir la relacion entre las dos tablas tenemos que crearla con los decoradores de typeORM en una `@OneToMany` y en la otra ` @ManyToOne`, de esta forma se crea el vinculo.
+
+```
+/product.entity.ts
+
+    @OneToMany(
+        () => ProductImage,
+        productImage => productImage.product,
+        { cascade: true }
+    )
+    images?: ProductImage;
+```
+
+```
+/product-image.entity.ts
+
+    @ManyToOne(
+        () => Product,
+        (product) => product.images,
+    )
+    product: Product
+```
+
+En el product.entity.ts agregamos la relacion de `@OneToMany()`, este acepta 2-3 argumentos, el primero indica qel tipo de objecto el cual estamos esperando que es `ProductImage` o `Product`, el segundo como se va a relacionar la otra tabla con esta tabla y el tercero son las configuraciones, en este caso `cascada: true` indica que si eliminamos o modificamos el producto tambien lo hace la relacion.
