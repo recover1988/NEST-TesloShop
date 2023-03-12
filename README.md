@@ -751,3 +751,42 @@ Luego en el servicio al metodo de crear producto le agregamos la creacion de ima
 ```
 
 Si las imagenes no vienen se pone un array vacio, y tampoco en el momento de crear hay que especificar el id del producto ya que TypeORM lo infiere al estar creado dentro del producto, el cual luego se graba.
+
+# Aplanar las imagenes
+
+Si estamos usando algun query con `find*` entonces podemos habilitar en el entity la opcion `eager: true`, que nos envia los dato de la relacion.
+
+```
+    @OneToMany(
+        () => ProductImage,
+        (productImage) => productImage.product,
+        { cascade: true, eager: true }
+    )
+    images?: ProductImage[];
+```
+
+Y si estamos usando el queryBuilder tenemos que usar el ` .leftJoinAndSelect('prod.images', 'prodImages')` este metodo nos pide dos o tres argumentos que son la propiedad de la relacion, el alias de la tabla y las opciones. cuando usamos el `createQueryBuilder('prod')` estamos dando el alias a la tabla.
+
+```
+  async findOne(term: string) {
+    let product: Product;
+    if (isUUID(term)) {
+      product = await this.productRepository.findOneBy({ id: term });
+    } else {
+      const queryBuilder = this.productRepository.createQueryBuilder('prod');
+      product = await queryBuilder.where('UPPER(title) =:title or slug =:slug', {
+        title: term.toUpperCase(),
+        slug: term.toLowerCase(),
+      })
+        .leftJoinAndSelect('prod.images', 'prodImages')
+        .getOne();
+
+    }
+
+    if (!product) {
+      throw new NotFoundException(`Product with ${term} not found`);
+    }
+
+    return product;
+  }
+```

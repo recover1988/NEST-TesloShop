@@ -19,7 +19,7 @@ export class ProductsController {
   }
 
   @Get(':id')
-  findOne(@Param('term') term: string) {
+  findOnePlain(@Param('term') term: string) {
     return this.productsService.findOne(term);
   }
 
