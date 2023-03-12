@@ -790,3 +790,61 @@ Y si estamos usando el queryBuilder tenemos que usar el ` .leftJoinAndSelect('pr
     return product;
   }
 ```
+
+## Query Runner
+
+Para hacer una actualizacion necesitamos borrar las anteriores imagenes y luego hacer la actualizacion.
+El queryRunner nos permite hacer rollback si algo sucede mal de esa forma no perderiamos la data.
+Para usar el queryRunner debemos inyectar en el servicio:
+
+```
+  constructor(
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
+
+    @InjectRepository(ProductImage)
+    private readonly productImageRepository: Repository<ProductImage>,
+
+    private readonly dataSource: DataSource, <--
+  ) { }
+```
+
+Y luego en la funcion update instanciamos:
+
+```
+ async update(id: string, updateProductDto: UpdateProductDto) {
+
+    const { images, ...toUpdate } = updateProductDto;
+
+    const product = await this.productRepository
+      .preload({ id, ...toUpdate });
+
+    if (!product) throw new NotFoundException(`Product with id: ${id} not found`);
+
+    // Create query runner
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    try {
+      await this.productRepository.save(product);
+      return product;
+    } catch (error) {
+      this.handleDBException(error);
+    }
+  }
+```
+
+## Eliminacion en cascada
+
+Se puede borrar primero las imagenes y luego el producto, eso seria una solucion.
+En la entity podemos especificar que hacer cuando eliminan al producto:
+
+```
+    @ManyToOne(
+        () => Product,
+        (product) => product.images,
+        { onDelete: 'CASCADE' }
+    )
+    product: Product;
+```
+
+Con el `onDelete` en `CASCADE` se elimina las imagenes que estan relacionadas al producto.
