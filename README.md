@@ -644,3 +644,46 @@ Para agregar una nueva columna a nuestra base de datos, tenemos que declararla e
 
 De esta forma estamos creando con el entity la nueva columna en la base de datos y con el dto estamos aceptando el nuevo valor como entrada.
 `@IsOptional()` porque ya tenemos un valor por defecto que es [] , ose el array vacio.
+
+# ProductImage Entity
+
+Creamos una nueva entity en el mismo modulo de product, para las imagenes.
+
+```
+/entities/product-image.entity.ts
+
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+
+@Entity()
+export class ProductImage {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @Column('text')
+    url: string;
+}
+```
+
+Y lo conectamos a la base de datos para que genere la nueva tabla.
+
+```
+/app.module.ts
+
+import { Module } from '@nestjs/common';
+import { ProductsService } from './products.service';
+import { ProductsController } from './products.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Product, ProductImage } from './entities';
+
+
+@Module({
+  controllers: [ProductsController],
+  providers: [ProductsService],
+  imports: [
+    TypeOrmModule.forFeature([Product, ProductImage]),  <--
+  ]
+})
+export class ProductsModule { }
+```
+
+Lo declaramos en el `TypeOrmModule.forFeature([])` en el array, y de esta manera se genera la tabla.
