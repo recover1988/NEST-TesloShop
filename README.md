@@ -930,3 +930,39 @@ export class SeedService {
 ```
 
 Creamos un array con las promesas y luego realizamos un `Promise.all` para ejecutarlas.
+
+# Subir archivos con Nest
+
+La carga de archivos es algo general que solo cambia algunas propiedades.
+Crear un modulo `files` donde estar el metodo para subir archivos.
+Se recomienda no alpjar las imagenes en el mismo servidor donde esta la data o donde se manejan los datos. Es mejor usar servicio de terceros como un buccket de AWS o Cloudinary para alojar imagenes.
+
+```
+nest g res files --no-spec
+```
+
+La configuracion que pide nest es instalar el tipo `multer`:
+
+```
+npm i -D @types/multer
+```
+
+Con esta instalacion podemos realizar el tipado del archivo.
+
+```
+/files/files.controller.ts
+
+@Controller('files')
+export class FilesController {
+  constructor(private readonly filesService: FilesService) { }
+
+  @Post('product')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadProductImage(@UploadedFile() file: Express.Multer.File) {
+    return file;
+  }
+}
+```
+
+El interceptos nos permite tomar el tipo que elegimos.
+Con esto ya estamos manejando el archivos desde el back y solo faltaria guardarlo con filesystem
