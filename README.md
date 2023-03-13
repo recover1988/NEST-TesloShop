@@ -889,4 +889,44 @@ Para usarlo en el nuevo recurso necesitamos importalo en el modulo.
 })
 export class SeedModule { }
 ```
+
 Con esto ya podemos inyectarlo en nuestro servicio.
+
+## Carga de archivos de forma masiva
+
+```
+import { Injectable } from '@nestjs/common';
+import { ProductsService } from 'src/products/products.service';
+import { initialData } from './data/seed-data';
+
+@Injectable()
+export class SeedService {
+  constructor(
+    private productsService: ProductsService
+  ) { }
+
+
+  async runSeed() {
+    await this.insertNewProducts();
+
+    return `Seed execute`;
+  }
+
+  private async insertNewProducts() {
+    await this.productsService.deleteAllProducts();
+
+    const products = initialData.products;
+
+    const insertPromises = [];
+    products.forEach(product => {
+      insertPromises.push(this.productsService.create(product));
+    })
+    await Promise.all(insertPromises);
+
+    return true
+  }
+}
+
+```
+
+Creamos un array con las promesas y luego realizamos un `Promise.all` para ejecutarlas.
