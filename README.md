@@ -848,3 +848,45 @@ En la entity podemos especificar que hacer cuando eliminan al producto:
 ```
 
 Con el `onDelete` en `CASCADE` se elimina las imagenes que estan relacionadas al producto.
+
+## Product Seed
+
+Generar un nuevo resource
+
+```
+nest g res seed --no-spec
+```
+
+En el modulo de producto exportamos el servicio, asi en el modulo de servicio lo importamos y lo podemos inyectar.
+
+```
+/products.module.ts
+
+@Module({
+  controllers: [ProductsController],
+  providers: [ProductsService],
+  imports: [
+    TypeOrmModule.forFeature([Product, ProductImage]),
+  ],
+  exports: [
+    ProductsService,
+    TypeOrmModule
+  ]
+})
+export class ProductsModule { }
+```
+
+Tambien es comun exportar el TypeOrmModule para poder usar los repositorios.
+Para usarlo en el nuevo recurso necesitamos importalo en el modulo.
+
+```
+/seed.module.ts
+
+@Module({
+  controllers: [SeedController],
+  providers: [SeedService],
+  imports: [ProductsModule]
+})
+export class SeedModule { }
+```
+Con esto ya podemos inyectarlo en nuestro servicio.
