@@ -1010,3 +1010,29 @@ Esta funcion la usamos en el interceptor del controlador.
 ```
 
 Si el interceptor no devuelve nada entonces lanzamos un `BadRequestException`.
+
+## Guardar Imagen en FileSystem
+
+No se guarda en carpeta `public` porque esta disponible para cualquier usuario este autenticado o no.
+Crearse otra carpeta `static` o `uploads`, para indicar que se guarden en estos `paths` tenemos que enviar la siguiente configuracion:
+
+```
+@Post('product')
+  @UseInterceptors(FileInterceptor('file', {
+    fileFilter: fileFilter,
+    // limits:{fieldSize:1000}
+    storage: diskStorage({
+      destination:'./static/uploads'
+    })
+  }))
+  uploadProductImage(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('Make sure that file is an image.')
+    }
+    return {
+      fileName: file.originalname
+    };
+  }
+```
+
+En el `storage` definimos con el `diskStorage` el `destination` que es el `path` de la carpeta en donde queremos guardar los archivos.
