@@ -931,6 +931,10 @@ export class SeedService {
 
 Creamos un array con las promesas y luego realizamos un `Promise.all` para ejecutarlas.
 
+# .gitkeep
+
+Es un archivo que no pesa casi nada y se utiliza para indicar a `git` que suba la carpeta que lo contiene.
+
 # Subir archivos con Nest
 
 La carga de archivos es algo general que solo cambia algunas propiedades.
@@ -1036,3 +1040,49 @@ Crearse otra carpeta `static` o `uploads`, para indicar que se guarden en estos 
 ```
 
 En el `storage` definimos con el `diskStorage` el `destination` que es el `path` de la carpeta en donde queremos guardar los archivos.
+
+## Renombrar el archivo subido
+
+```
+@Post('product')
+  @UseInterceptors(FileInterceptor('file', {
+    fileFilter: fileFilter,
+    // limits:{fieldSize:1000}
+    storage: diskStorage({
+      destination: './static/uploads',
+      filename: fileNamer
+    })
+  }))
+  uploadProductImage(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('Make sure that file is an image.')
+    }
+    return {
+      fileName: file.originalname
+    };
+  }
+```
+
+Para renombrar un archivo debemos usar la propiedad `filename` del `diskStorage` esta espera 3 argumentos, y para ello nos creamos una funcion helper:
+
+```
+import { v4 as uuid } from "uuid";
+
+
+export const fileNamer = (
+    req: Express.Request,
+    file: Express.Multer.File,
+    callback: Function) => {
+
+    // console.log(file)
+    if (!file) return callback(new Error('File is empty'), false);
+
+    const fileExtension = file.mimetype.split('/')[1];
+
+    const fileName = `${uuid()}.${fileExtension}`
+    callback(null, fileName);
+
+}
+```
+
+Para este momento ya tenemos el archivos pero igual dejamos la validacion por si acaso, luego creamos el `fileName` y los devolvemos en el `callback`.
