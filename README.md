@@ -1086,3 +1086,45 @@ export const fileNamer = (
 ```
 
 Para este momento ya tenemos el archivos pero igual dejamos la validacion por si acaso, luego creamos el `fileName` y los devolvemos en el `callback`.
+
+## Servir archivos de manera controlada
+
+En el service nos creamos un metodo que devuelva el path de la imagen.
+
+```
+import { existsSync } from 'fs';
+import { join } from 'path';
+import { BadRequestException, Injectable } from '@nestjs/common';
+
+@Injectable()
+export class FilesService {
+    getStaticProductImage(imageName: string) {
+        const path = join(__dirname, '../../static/products', imageName);
+
+        if (!existsSync(path)) {
+            throw new BadRequestException(`No product found with image ${imageName}`)
+        }
+
+        return path;
+    }
+}
+```
+
+El `path` lo creamos con el metodo `join` el cual necesita la direccion local, y el nombre de la imangen. Sino exsite devolvemos un `BadRequestException`.
+Ahora lo usamos en el controlador:
+
+```
+  @Get('product/:imageName')
+  findProductImage(
+    @Res() res: Response,
+    @Param('imageName') imageName: string
+  ) {
+
+    const path = this.filesService.getStaticProductImage(imageName);
+
+    return res.sendFile(path);
+
+  }
+```
+
+Cuando usamos el decorador @Res() estamos indicanod a `NEST` que ahora nosotros estamos controlando de manera manual todo la respuesta con `Express`, por eso al final usamos el `res.sendFile()` para servir la imagen.
