@@ -1128,3 +1128,45 @@ Ahora lo usamos en el controlador:
 ```
 
 Cuando usamos el decorador @Res() estamos indicanod a `NEST` que ahora nosotros estamos controlando de manera manual todo la respuesta con `Express`, por eso al final usamos el `res.sendFile()` para servir la imagen.
+
+## Retornar el secureUrl
+
+La idea es que el path sea con una variable de entorno.
+Para usar variables de entorno tenemos que inyectar el `ConfigService`:
+
+```
+  constructor(
+    private readonly filesService: FilesService,
+    private readonly configService: ConfigService
+  ) { }
+```
+Tambien importamos en el modulo
+```
+@Module({
+  controllers: [FilesController],
+  providers: [FilesService],
+  imports: [ConfigModule]
+})
+```
+Lo usamos en el controlador:
+```
+  @Post('product')
+  @UseInterceptors(FileInterceptor('file', {
+    fileFilter: fileFilter,
+    // limits:{fieldSize:1000}
+    storage: diskStorage({
+      destination: './static/uploads',
+      filename: fileNamer
+    })
+  }))
+  uploadProductImage(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('Make sure that file is an image.')
+    }
+
+    const secureUrl = `${this.configService.get('HOST_API')}/files/product/${file.filename}`
+    return {
+      secureUrl
+    };
+  }
+```
