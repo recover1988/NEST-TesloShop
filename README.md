@@ -965,4 +965,48 @@ export class FilesController {
 ```
 
 El interceptos nos permite tomar el tipo que elegimos.
-Con esto ya estamos manejando el archivos desde el back y solo faltaria guardarlo con filesystem
+Con esto ya estamos manejando el archivos desde el back y solo faltaria guardarlo con filesystem.
+
+## Validar archivos
+
+Nos creamos una funcion helper para validar el archivo:
+
+```
+export const fileFilter = (
+    req: Express.Request,
+    file: Express.Multer.File,
+    callback: Function) => {
+
+    // console.log(file)
+    if (!file) return callback(new Error('File is empty'), false);
+
+    const fileExtension = file.mimetype.split('/')[1];
+    const validExtensions =['jpg', 'jpeg', 'png' , 'gif'];
+    if(validExtensions.includes(fileExtension)){
+        return callback(null,true)
+    }
+    callback(null, false);
+
+}
+```
+
+Si el callback devuelte false, nest lanza un error.
+Si el callback es true entonces deja pasar el archivo.
+Esta funcion la usamos en el interceptor del controlador.
+
+```
+  @Post('product')
+  @UseInterceptors(FileInterceptor('file', {
+    fileFilter: fileFilter   <--- Aca usamos la funcion
+  }))
+  uploadProductImage(@UploadedFile() file: Express.Multer.File) {
+    if(!file){
+      throw new BadRequestException('Make sure that file is an image.')
+    }
+    return {
+      fileName: file.originalname
+    };
+  }
+```
+
+Si el interceptor no devuelve nada entonces lanzamos un `BadRequestException`.
