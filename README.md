@@ -1140,7 +1140,9 @@ Para usar variables de entorno tenemos que inyectar el `ConfigService`:
     private readonly configService: ConfigService
   ) { }
 ```
+
 Tambien importamos en el modulo
+
 ```
 @Module({
   controllers: [FilesController],
@@ -1148,7 +1150,9 @@ Tambien importamos en el modulo
   imports: [ConfigModule]
 })
 ```
+
 Lo usamos en el controlador:
+
 ```
   @Post('product')
   @UseInterceptors(FileInterceptor('file', {
@@ -1170,3 +1174,22 @@ Lo usamos en el controlador:
     };
   }
 ```
+
+## Otras formas de desplegar archivos
+
+Para servir archivos de manera estatica tenemos que instalar:
+
+```
+npm i @nestjs/serve-static
+```
+
+y luego configurar en el app.module.ts:
+
+```
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public')
+    }),
+
+```
+
+Con esta configuracion tenemos que estar seguros que lo queremos mostrar son estos archivos ya que es publico visible para cualquier persona.
