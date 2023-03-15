@@ -1203,8 +1203,10 @@ Crear resource `auth`:
 ```
  nest g res auth --no-spec
 ```
+
 La entidad relaciona la tabla de datos con nuestra esta.
 Para generar la tabla debemos importar el `TypeOrmModule.forRoot` y si queremos usar la entidad en otros modulos solamente exportamos el `TypeOrmModule`.
+
 ```
 @Module({
   controllers: [AuthController],
@@ -1216,7 +1218,9 @@ Para generar la tabla debemos importar el `TypeOrmModule.forRoot` y si queremos 
 })
 export class AuthModule { }
 ```
+
 Para generar las columnas hay que declararlas con el decorador en el entity.
+
 ```
 @Entity('users')
 export class User {
@@ -1247,7 +1251,48 @@ export class User {
 }
 ```
 
-
 ## Crear Usuario
 
 Crear un endpoint para crear el usuario. Mediante una peticio `Post`.
+Para eso en el controlador creamos la ruta con el dto:
+
+```
+  @Post('register')
+  create(@Body() createUserDto: CreateUserDto) {
+    return this.authService.create(createUserDto);
+  }
+```
+
+Luego en el servicio inyectamos la entity `User` para poder usar los metodos de la tabla:
+
+```
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>
+  ) { }
+```
+
+Creamos la funcion que genera el usuario:
+
+```
+  async create(createUserDto: CreateUserDto) {
+    try {
+      const user = this.userRepository.create(createUserDto);
+      await this.userRepository.save(user);
+      return user;
+    } catch (error) {
+      this.handleDBErrors(error);
+    }
+  }
+```
+
+Y un manejador de excepciones:
+
+```
+  private handleDBErrors(error: any): never {
+    if (error.code === '23505')
+      throw new BadRequestException(error.detail);
+
+    throw new InternalServerErrorException('Please check server logs');
+  }
+```
