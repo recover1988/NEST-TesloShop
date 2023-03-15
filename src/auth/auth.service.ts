@@ -28,6 +28,7 @@ export class AuthService {
     }
   }
 
+  login() { }
 
   private handleDBErrors(error: any): never {
     if (error.code === '23505')

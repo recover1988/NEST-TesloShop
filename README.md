@@ -1326,3 +1326,5 @@ Y usamos el metodo de hashSync indicandole la contraseña y las vueltas en numer
 ```
 
 Podemos ver que estamos encryptando la contraseña `password: bcrypt.hashSync(password, 10)` y luego hacemos un delete `delete user.password;`, esto es para no devolver en el json.
+
+## Login de Usuario
