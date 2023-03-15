@@ -1272,6 +1272,29 @@ Luego en el servicio inyectamos la entity `User` para poder usar los metodos de 
   ) { }
 ```
 
+Creamos el dto para validar la data que necesitamos:
+
+```
+export class CreateUserDto {
+    @IsString()
+    @IsEmail()
+    email: string;
+
+    @IsString()
+    @MinLength(6)
+    @MaxLength(50)
+    @Matches(
+        /(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
+        message: 'The password must have a Uppercase, lowercase letter and a number'
+    })
+    password: string;
+
+    @IsString()
+    @MinLength(1)
+    fullName: string;
+}
+```
+
 Creamos la funcion que genera el usuario:
 
 ```
@@ -1328,3 +1351,68 @@ Y usamos el metodo de hashSync indicandole la contraseña y las vueltas en numer
 Podemos ver que estamos encryptando la contraseña `password: bcrypt.hashSync(password, 10)` y luego hacemos un delete `delete user.password;`, esto es para no devolver en el json.
 
 ## Login de Usuario
+
+Creamos una peticion post para el login:
+
+```
+  @Post('login')
+  loginUser(@Body() createUserDto: CreateUserDto) {
+    return this.authService.login();
+  }
+```
+
+Para dejar de enviar el password en cada consulta podemos usar el select en la entity en false, esto desabilita enviar esta columna:
+
+```
+    @Column('text', {
+        select: false
+    })
+    password: string;
+```
+
+Solo necesitamos el password y la contraseña. Para eso creamos un nuevo deto `login-user.dto.ts`:
+
+```
+  async login(loginUserDto: LoginUserDto) {
+    try {
+      const { password, email } = loginUserDto;
+      const user = await this.userRepository.findOne({
+        where: { email },
+        select: { email: true, password: true }
+      });
+      if (!user) {
+        throw new UnauthorizedException('Credentials are not valid(email)');
+      }
+      if (bcrypt.compareSync(password, user.password)) {
+        throw new UnauthorizedException('Credentials are not valid(password)')
+      }
+      return user;
+    } catch (error) {
+      this.handleDBErrors(error)
+    }
+  }
+```
+
+Este metodo `bcrypt.compareSync(password, user.password)` intenta comparar el usuario que nos envia con el de la base de datos y si son similares retorna un boleano.
+Para este endopoint nose creamos un nuevo dto el `login-user.dto.ts`:
+
+```
+import { IsEmail, IsString, Matches, MaxLength, MinLength } from "class-validator";
+
+export class LoginUserDto {
+    @IsString()
+    @IsEmail()
+    email: string;
+
+    @IsString()
+    @MinLength(6)
+    @MaxLength(50)
+    @Matches(
+        /(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
+        message: 'The password must have a Uppercase, lowercase letter and a number'
+    })
+    password: string;
+}
+```
+
+Con esto estamos pidiendo que la data que nos envien es obligatoria, es diferentes si extendemos de createUserDto porque serian opcionales.
