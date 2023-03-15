@@ -17,12 +17,14 @@ export class User {
     @Column('text')
     fullName: string;
 
-    @Column('boolean')
-    isActive: boolean;
-    
-    @Column('text', {
-        array: true
+    @Column('boolean', {
+        default: true
     })
-    @IsArray()
+    isActive: boolean;
+
+    @Column('text', {
+        array: true,
+        default: ['user']
+    })
     roles: string[];
 }

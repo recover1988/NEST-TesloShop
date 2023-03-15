@@ -10,5 +10,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
   imports: [
     TypeOrmModule.forFeature([User]),
   ],
+  exports: [TypeOrmModule]
 })
 export class AuthModule { }

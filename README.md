@@ -1203,4 +1203,46 @@ Crear resource `auth`:
 ```
  nest g res auth --no-spec
 ```
-La entidad relacion la tabla de datos con nuestra 
+La entidad relaciona la tabla de datos con nuestra esta.
+Para generar la tabla debemos importar el `TypeOrmModule.forRoot` y si queremos usar la entidad en otros modulos solamente exportamos el `TypeOrmModule`.
+```
+@Module({
+  controllers: [AuthController],
+  providers: [AuthService],
+  imports: [
+    TypeOrmModule.forFeature([User]),
+  ],
+  exports: [TypeOrmModule]
+})
+export class AuthModule { }
+```
+Para generar las columnas hay que declararlas con el decorador en el entity.
+```
+@Entity('users')
+export class User {
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
+
+    @Column('text', {
+        unique: true
+    })
+    email: string;
+
+    @Column('text')
+    password: string;
+
+    @Column('text')
+    fullName: string;
+
+    @Column('bool', {
+        default: true
+    })
+    isActive: boolean;
+
+    @Column('text', {
+        array: true,
+        default: ['user']
+    })
+    roles: string[];
+}
+```
