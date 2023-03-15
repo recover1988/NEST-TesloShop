@@ -1296,3 +1296,33 @@ Y un manejador de excepciones:
     throw new InternalServerErrorException('Please check server logs');
   }
 ```
+
+## Encriptar la contraseña
+
+No debemos devolver las contraseñas y tampoco se deben almacenar de manera plana sino encriptada.
+Para eso usamos hash de encriptacion de una sola via, para eso instalamos:
+
+```
+npm i bcrypt
+```
+
+Y usamos el metodo de hashSync indicandole la contraseña y las vueltas en numeros enteros.
+
+```
+  async create(createUserDto: CreateUserDto) {
+    try {
+      const { password, ...userData } = createUserDto;
+      const user = this.userRepository.create({
+        ...userData,
+        password: bcrypt.hashSync(password, 10)
+      });
+      await this.userRepository.save(user);
+      delete user.password;
+      return user;
+    } catch (error) {
+      this.handleDBErrors(error);
+    }
+  }
+```
+
+Podemos ver que estamos encryptando la contraseña `password: bcrypt.hashSync(password, 10)` y luego hacemos un delete `delete user.password;`, esto es para no devolver en el json.
