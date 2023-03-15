@@ -1193,3 +1193,14 @@ y luego configurar en el app.module.ts:
 ```
 
 Con esta configuracion tenemos que estar seguros que lo queremos mostrar son estos archivos ya que es publico visible para cualquier persona.
+
+# Auntenticacion y Autorizacion
+
+## Entidad de Usuario
+
+Crear resource `auth`:
+
+```
+ nest g res auth --no-spec
+```
+La entidad relacion la tabla de datos con nuestra 
