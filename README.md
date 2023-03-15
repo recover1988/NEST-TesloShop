@@ -1246,3 +1246,8 @@ export class User {
     roles: string[];
 }
 ```
+
+
+## Crear Usuario
+
+Crear un endpoint para crear el usuario. Mediante una peticio `Post`.
