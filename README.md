@@ -1251,6 +1251,8 @@ export class User {
 }
 ```
 
+Se acostumbra a usar identificadores unicos que no cambien.
+
 ## Crear Usuario
 
 Crear un endpoint para crear el usuario. Mediante una peticio `Post`.
@@ -1416,3 +1418,71 @@ export class LoginUserDto {
 ```
 
 Con esto estamos pidiendo que la data que nos envien es obligatoria, es diferentes si extendemos de createUserDto porque serian opcionales.
+
+## Nest Authentication - Passport
+
+JWT es un string que esta firmado y nos permite saber si esta autentificado.
+Passport nos permite usar diferentes estrategias como usar de manera local o mediante JWT.
+Para instalarlos tenemos que hacer :
+
+```
+npm i --save @nestjs/passport passport
+npm i --save @nestjs/jwt passport-jwt
+npm install --save-dev @types/passport-jwt
+```
+
+### Usar en modo sincrono:
+
+Para ello tenemos que ir al modulo de auth y poner la siguien configuracion:
+
+```
+@Module({
+  controllers: [AuthController],
+  providers: [AuthService],
+  imports: [
+    TypeOrmModule.forFeature([User]),
+    PassportModule.register({defaultStrategy: 'jwt'}),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions:{
+        expiresIn:'2h'
+      }
+    })
+  ],
+  exports: [TypeOrmModule]
+})
+export class AuthModule { }
+```
+
+De esta forma en `secret` ponemos nuestra llave para firmar los tokens, y en `signOptions` podemos poner la duracion o validez que tendra el token.
+El modo sincrono no se usar mucho es mejor optar por el modo asincrono.
+
+### Modulos asincronos
+
+Se usa el `useFactory` para registrar de manera asincrona el modulo. Y debe retornar las opciones o configuracion del JWT.
+Se usa `ConfigService` porque da mas opciones que las variables de entorno, como poder realizar procesos, verificar datos, cambiar, etc.
+
+```
+@Module({
+  controllers: [AuthController],
+  providers: [AuthService],
+  imports: [
+    TypeOrmModule.forFeature([User]),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return {
+          secret: configService.get('JWT_SECRET'),
+          signOptions: {
+            expiresIn: '2h'
+          }
+        }
+      }
+    })
+  ],
+  exports: [TypeOrmModule]
+})
+export class AuthModule { }
+```
