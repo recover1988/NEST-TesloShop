@@ -1486,3 +1486,26 @@ Se usa `ConfigService` porque da mas opciones que las variables de entorno, como
 })
 export class AuthModule { }
 ```
+
+## JWT Strategy
+
+Una vez configurado el token, se tiene que usar para esto creamos una funcion que valide el usuario mediante el JWT.
+
+```
+/strategies/jwt.strategy.ts
+
+import { PassportStrategy } from "@nestjs/passport";
+import { Strategy } from "passport-jwt";
+import { User } from "../entities/user.entity";
+import { JwtPayload } from "../interfaces/jwt-payload.interface";
+
+export class JwtStrategy extends PassportStrategy(Strategy) {
+
+    async validate(payload: JwtPayload): Promise<User> {
+        const { email } = payload;
+        return;
+    }
+}
+```
+
+Tambien creamos una interface que no ayuda a saber que elemento esperamos que reciba en este caso un objeto con el valor email.
