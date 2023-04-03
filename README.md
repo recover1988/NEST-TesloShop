@@ -1636,3 +1636,54 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'myjwt')
 ```
 
 De esta forma podemos tener varias e ir activandolas.
+
+## Custom Property Decorator - GetUser
+
+Para generar decoradores podemos usar el CLI con el comando:
+
+```
+nest g decorator
+```
+
+Esto genera un decorador global, funciona por clase y por ruta de controlador, pero no por propiedad.
+
+Para obtener los datos del `Guard` podemos hacer uso del un decorador personalizado:
+
+```
+/auth/decorators/get-user.decorator.ts
+
+import { InternalServerErrorException, createParamDecorator } from "@nestjs/common";
+import { ExecutionContextHost } from "@nestjs/core/helpers/execution-context-host";
+
+export const GetUser = createParamDecorator(
+    (data, ctx: ExecutionContextHost) => {
+        // console.log({ data })
+        const req = ctx.switchToHttp().getRequest();
+        const user = req.user;
+        if (!user) throw new InternalServerErrorException('User not found in request')
+
+        return user;
+    }
+);
+```
+
+Y en el controlador lo usamos para obtener el usuario:
+
+```
+/auth/auth.controller.ts
+
+  @Get('private')
+  @UseGuards(AuthGuard())
+  testingPrivateRoute(
+    // @Req() request: Express.Request
+    @GetUser() user: User
+  ) {
+    return {
+      ok: true,
+      message: 'Hola mundo private',
+      user
+    }
+  }
+```
+
+Dentro de `@GetUser()` podemos enviar parametros que vendria a ser la data del decorador.
