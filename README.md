@@ -1611,3 +1611,28 @@ En la entidad podemos ejecutar una funcion para poner en minuscula el email:
         this.checkFieldsBeforeInsert();
     }
 ```
+
+## Private Route - General
+
+Para tener una ruta controlada debemos usar el `@UseGuards(AuthGuard())` este guard usa la funcion que creamos en la estrategia y cuando pasa por esta verifica si el usuario esta activo o o no.
+
+```
+  @Get('private')
+  @UseGuards(AuthGuard())
+  testingPrivateRoute() {
+    return {
+      ok: true,
+      message: 'Hola mundo private'
+    }
+  }
+```
+
+## Nombrar strategy
+
+Podemos nombrar las estrategias y usarlas en el `AuthGuard()`:
+
+```
+export class JwtStrategy extends PassportStrategy(Strategy, 'myjwt')
+```
+
+De esta forma podemos tener varias e ir activandolas.
