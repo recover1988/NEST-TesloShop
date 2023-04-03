@@ -1579,3 +1579,35 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 })
 export class AuthModule { }
 ```
+
+## Generar JWT
+
+Para generar debemos usar el servicio de `JwtService`, y en el servicio que queremos generar lo inyectamos, luego nos creamos una funcion generadora de token:
+
+```
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+
+    private readonly jwtService: JwtService,
+  ) { }
+
+    private getJwtToken(payload: JwtPayload) {
+    const token = this.jwtService.sign(payload);
+    return token;
+  }
+```
+
+En la entidad podemos ejecutar una funcion para poner en minuscula el email:
+
+```
+    @BeforeInsert()
+    checkFieldsBeforeInsert() {
+        this.email = this.email.toLowerCase().trim();
+    }
+
+    @BeforeUpdate()
+    checkFieldsBeforeUpdate() {
+        this.checkFieldsBeforeInsert();
+    }
+```
