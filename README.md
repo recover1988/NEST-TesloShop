@@ -1495,17 +1495,87 @@ Una vez configurado el token, se tiene que usar para esto creamos una funcion qu
 /strategies/jwt.strategy.ts
 
 import { PassportStrategy } from "@nestjs/passport";
-import { Strategy } from "passport-jwt";
+import { ExtractJwt, Strategy } from "passport-jwt";
 import { User } from "../entities/user.entity";
 import { JwtPayload } from "../interfaces/jwt-payload.interface";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { ConfigService } from "@nestjs/config";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 
+
+@Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
+    constructor(
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>,
+
+        configService: ConfigService
+    ) {
+        super({
+            secretOrKey: configService.get('JWT_SECRET'),
+            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+        })
+    }
 
     async validate(payload: JwtPayload): Promise<User> {
         const { email } = payload;
-        return;
+        const user = await this.userRepository.findOneBy({ email })
+        if (!user) throw new UnauthorizedException('Token no valid')
+        if (!user.isActive) throw new UnauthorizedException('User is inactive, talk with an admin')
+        return user;
     }
 }
 ```
 
 Tambien creamos una interface que no ayuda a saber que elemento esperamos que reciba en este caso un objeto con el valor email.
+Esta funcion va a ejecutarse cuando pase al menos dos validaciones:
+
+- Token no haya expirado
+- La firma sea la correcta
+  Las Estrategias son providers y tienen que conectarse en algun lado, para ello se inyecta como provider en el modulo y para usarlo en otro lado se exporta.
+  Para ellos hacemos en el modulo:
+
+```
+/auth/auth.module.ts
+
+import { Module } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
+import { User } from './entities/user.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { PassportModule } from '@nestjs/passport';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtStrategy } from './strategies/jwt.strategy';
+
+@Module({
+  controllers: [AuthController],
+  providers: [AuthService, JwtStrategy],
+  imports: [
+    ConfigModule,
+    TypeOrmModule.forFeature([User]),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return {
+          secret: configService.get('JWT_SECRET'),
+          signOptions: {
+            expiresIn: '2h'
+          }
+        }
+      }
+    })
+    // JwtModule.register({
+    //   secret: process.env.JWT_SECRET,
+    //   signOptions:{
+    //     expiresIn:'2h'
+    //   }
+    // })
+  ],
+  exports: [TypeOrmModule, JwtStrategy, PassportModule, JwtModule]
+})
+export class AuthModule { }
+```
