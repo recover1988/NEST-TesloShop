@@ -1791,3 +1791,62 @@ export class UserRoleGuard implements CanActivate {
 ```
 
 En el `guard` podemos verificar que el usuario tenga un rol que se encuentra en la metadata, si esta no existe o no tiene elementos entonces se permite pasar. Si algun role conincide con el usuario tambien retorna true y se deja pasar.
+
+## Custom Decorator - Roleprotected
+
+Crearse un decorador con el cli:
+
+```
+nest g d auth/decorators/roleProtected
+```
+
+Creamos una constante `META_DATA` a la cual le asignamos el valor de los roles y creamos un `enum` para asignar los valores validos que puede recibir.
+
+```
+auth/decorator/role-protected.decorator.ts
+
+import { SetMetadata } from '@nestjs/common';
+import { ValidRoles } from '../interfaces/valid-roles';
+
+export const META_ROLES = 'roles';
+
+export const RoleProtected = (...args: ValidRoles[]) => {
+    return SetMetadata(META_ROLES, args);
+}
+```
+
+Creamos un enum en interfaces
+
+```
+auth/interfaces/valid-roles.ts
+
+export enum ValidRoles {
+    admin = 'admin',
+    superUser = 'super-user',
+    user = 'user'
+}
+```
+
+Tambien cambiamos el valor de donde obtenemos los roles por el de `META_DATA`:
+
+```
+    const validRoles: string[] = this.reflector.get(META_ROLES, context.getHandler())
+```
+
+En el controlador aplicamos este nuevo decorador:
+
+```
+  @Get('private2')
+  @RoleProtected(ValidRoles.superUser, ValidRoles.admin)
+  @UseGuards(AuthGuard(), UserRoleGuard)
+  privateRoute2(
+    @GetUser() user: User,
+  ) {
+    return {
+      ok: true,
+      user
+    }
+  }
+```
+
+Inyectamos el decorador y le enviamos los valores que acepta del enum.

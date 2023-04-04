@@ -54,7 +54,6 @@ export class AuthService {
         ...user,
         token: this.getJwtToken({ id: user.id })
       };
-      //TODO: retornar JWT
     } catch (error) {
       this.handleDBErrors(error)
     }
