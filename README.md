@@ -1893,3 +1893,30 @@ Y le enviamos lo valor que necesita vereficarse.
 
 Para usar passport en otros modulos debemos `exportar` el JwtStrategy y el PassportModule del modulos auth.
 Para usar el decorador simplemente lo importamos y los usamos, pero en el modulo tambien importamos el AuthModule en este caso.
+
+## User que creo el product
+
+Para saber que usuario creo el producto tenemos que crear la relacion de `OneToMany` y `ManyToOne` entre `user` y `product`:
+En user:
+
+```
+    @OneToMany(
+        () => Product,
+        (product) => product.user
+    )
+    product: Product;
+```
+
+En product:
+
+```
+    @ManyToOne(
+        () => User,
+        (user) => user.product,
+        { eager: true }
+    )
+    user: User;
+```
+
+Como vemos la primera parte indica con que tabla se quiere relacionar y la segunda indica como se relacion la propiedad con la otra de la tabla.
+Con el eager en true hacemos que la consulta cargue los datos del usuario cuando se llama al producto.
