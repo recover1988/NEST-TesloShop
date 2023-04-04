@@ -1888,3 +1888,8 @@ Y lo aplicamos en el controlador:
 ```
 
 Y le enviamos lo valor que necesita vereficarse.
+
+## Auth en otros modulos
+
+Para usar passport en otros modulos debemos `exportar` el JwtStrategy y el PassportModule del modulos auth.
+Para usar el decorador simplemente lo importamos y los usamos, pero en el modulo tambien importamos el AuthModule en este caso.
