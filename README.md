@@ -1850,3 +1850,41 @@ En el controlador aplicamos este nuevo decorador:
 ```
 
 Inyectamos el decorador y le enviamos los valores que acepta del enum.
+
+## Composicion de decoradores
+
+Para agrupar todo en un solo decorador creamos:
+
+```
+auth/decorators/auth.decorator.ts
+
+import { UseGuards, applyDecorators } from "@nestjs/common";
+import { ValidRoles } from "../interfaces/valid-roles";
+import { RoleProtected } from "./role-protected.decorator";
+import { AuthGuard } from "@nestjs/passport";
+import { UserRoleGuard } from "../guards/user-role.guard";
+
+export function Auth(...roles: ValidRoles[]) {
+    return applyDecorators(
+        RoleProtected(...roles),
+        UseGuards(AuthGuard(), UserRoleGuard),
+    )
+}
+```
+
+Y lo aplicamos en el controlador:
+
+```
+  @Get('private3')
+  @Auth(ValidRoles.admin, ValidRoles.superUser)
+  privateRoute3(
+    @GetUser() user: User,
+  ) {
+    return {
+      ok: true,
+      user
+    }
+  }
+```
+
+Y le enviamos lo valor que necesita vereficarse.
