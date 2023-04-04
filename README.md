@@ -1687,3 +1687,79 @@ Y en el controlador lo usamos para obtener el usuario:
 ```
 
 Dentro de `@GetUser()` podemos enviar parametros que vendria a ser la data del decorador.
+
+## Custom Guard
+
+Para crear un `guard` podemos generarlo mediante el cli de nest:
+
+```
+nest g gu auth/guards/userRole --no-spec
+```
+
+Este `guard` resueleve a un boleanos, iuna promesa que resuelve un boleano o un observable de rxjs que emita un boleano.
+
+```
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { Observable } from 'rxjs';
+
+@Injectable()
+export class UserRoleGuard implements CanActivate {
+  canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
+    console.log('UserRoleGuard')
+    return true;
+  }
+}
+```
+
+Para usarlo debemos llamarlo en el controlador con el `@UseGuard()` se recomienda no instanciarlo porque queremos que use siempre la misma instancia.
+
+```
+  @Get('private2')
+  @SetMetadata('roles', ['admin', 'super-user'])
+  @UseGuards(AuthGuard(), UserRoleGuard)  <--
+  privateRoute2(
+    @GetUser() user: User,
+  ) {
+    return {
+      ok: true,
+      user
+    }
+  }
+```
+
+De esta manera pasa por el `guard`. La excepcion es controlada por Nest, ya que esta se encuentra en la zona donde nest controla la excepciones.
+
+### Obtener los datos de la metadata
+
+Para obtener la metadata debemos usar:
+
+```
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { Observable } from 'rxjs';
+
+@Injectable()
+export class UserRoleGuard implements CanActivate {
+  constructor(
+    private readonly reflector: Reflector
+  ) { }
+  canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
+    console.log('UserRoleGuard');
+
+    const validRoles: string[] = this.reflector.get('roles', context.getHandler())
+
+    console.log({ validRoles })
+
+    return true;
+  }
+}
+```
+
+Usamos el `Reflector` para obtener la metadata y asi en este caso obtener los `validRoles`'.
+
+
+## Verficar Rol del Usuario
