@@ -2055,3 +2055,28 @@ Para chequera el status podemos crear una nueva ruta para generar otro token:
     }
   }
 ```
+
+# Documentacion - OpenAPI
+
+Instalar swagger:
+
+```
+npm install --save @nestjs/swagger
+```
+
+Tenemos que hacer la configuracion basica en el `main.ts` poniendo:
+
+```
+  const config = new DocumentBuilder()
+    .setTitle('Teslo RESTFul API')
+    .setDescription('Teslo shop endpoints')
+    .setVersion('1.0')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
+```
+
+Antes del `app.listen` los labels los escribimos despues.
+Esta `docuemntacion` se habilita en el endpoin `api` como lo indica el ` SwaggerModule.setup`
+
+## Tags, ApiProperty y ApiResponse
