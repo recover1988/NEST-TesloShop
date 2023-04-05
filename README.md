@@ -2180,3 +2180,25 @@ import { CreateProductDto } from './create-product.dto';
 export class UpdateProductDto extends PartialType(CreateProductDto) {}
 
 ```
+
+# Websocket Gateways
+
+Instalar:
+
+```
+npm i --save @nestjs/websockets @nestjs/platform-socket.io
+```
+
+Para ello usamos el Websocket y el gateway lo usamos como si fuera un controlador.
+
+```
+nest g res messagesWs --no-spec
+? What transport layer do you use? WebSockets
+? Would you like to generate CRUD entry points? No
+CREATE src/messages-ws/messages-ws.gateway.ts (242 bytes)
+CREATE src/messages-ws/messages-ws.module.ts (258 bytes)
+CREATE src/messages-ws/messages-ws.service.ts (94 bytes)
+UPDATE src/app.module.ts (1189 bytes)
+```
+
+Podemos crear el resource y elegimos la opcion de websocket, se puede crear todo un crud pero por lo general solo se usa de manera muy especifica.
