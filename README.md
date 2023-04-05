@@ -2236,3 +2236,75 @@ Para tener las propiedades de socket debemos instalar:
 ```
 npm i socket.io
 ```
+
+## Mantener identificados a los clientes
+
+Primero hay que hacer la conexion con el front de la aplicacion, para ello instalamos:
+
+```
+npm i socket.io-client
+```
+
+y en el client creamos una funcion para realizar la conexion:
+
+```
+import { Manager } from "socket.io-client"
+
+export const connectToServer = () => {
+    const manager = new Manager('http://localhost:3000/socket.io/socket.io.js')
+
+    const socket = manager.socket('/');
+}
+```
+
+Una vez conectada, en el servicio del back podemos crear dos funcions una para registrar a los clientes y otra para eliminarlos. Ademas de un contador de clientes conectados.
+
+```
+import { Injectable } from '@nestjs/common';
+import { Socket } from 'socket.io';
+
+interface ConnectedClients {
+    [id: string]: Socket
+}
+
+@Injectable()
+export class MessagesWsService {
+
+    private connectedClients: ConnectedClients = {}
+
+    registerClient(client: Socket) {
+        this.connectedClients[client.id] = client;
+    }
+    removeClient(clientId: string) {
+        delete this.connectedClients[clientId]
+    }
+
+    getConnectedClients(): number {
+        return Object.keys(this.connectedClients).length;
+    }
+}
+```
+
+Ahora los usamos en el gateway:
+
+```
+import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway } from '@nestjs/websockets';
+import { MessagesWsService } from './messages-ws.service';
+import { Socket } from 'socket.io';
+
+@WebSocketGateway({ cors: true, namespace: '/' })
+export class MessagesWsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+
+  constructor(
+    private readonly messagesWsService: MessagesWsService
+  ) { }
+  handleConnection(client: Socket) {
+    this.messagesWsService.registerClient(client);
+
+    console.log({ conectados: this.messagesWsService.getConnectedClients() })
+  }
+  handleDisconnect(client: Socket) {
+    this.messagesWsService.removeClient(client.id)
+  }
+}
+```
