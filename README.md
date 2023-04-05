@@ -1952,3 +1952,57 @@ Y en el update antes de guardarlo podemos especificar la relacion:
       product.user = user;
       await queryRunner.manager.save(product);
 ```
+
+## Seed de usuarios, productos, e imagenes
+
+Tenemos que crear la base de datos de los usuarios:
+
+```
+    users: [
+        {
+            email: 'test1@gmail.com',
+            fullName: 'eric denis',
+            password: '12345tres',
+            role: ['admin']
+        },
+        {
+            email: 'test2@gmail.com',
+            fullName: 'lizeth gutierrez',
+            password: '12345tres',
+            role: ['user', 'super']
+        },
+    ],
+```
+
+Con su interface.
+Luego hay que insertarlos en la tabla de usuarios, pero antes hay que borrar toda la tabla, para ello hay que hacerlo en orden para que no de errores de relacion por las `foreign keys`.
+Nos creamos una funcions en el servicio para borrar las tablas:
+
+```
+  private async deleteTables() {
+    await this.productsService.deleteAllProducts();
+
+    const queryBuilder = this.userRepository.createQueryBuilder();
+    await queryBuilder
+      .delete()
+      .where({})
+      .execute()
+  }
+```
+
+Y ahora podemos crear una funcion que guarde los usuarios y retorne un usuario para poder hacer la relacion con los productos.
+
+```
+  private async insertUsers() {
+    const seedUsers = initialData.users;
+    const users: User[] = [];
+    seedUsers.forEach(user => {
+      users.push(this.userRepository.create(user))
+    });
+    const dbUser = await this.userRepository.save(seedUsers)
+    return dbUser[0]
+  }
+```
+
+Luego mandamos el resultado de esta funcion para que cree la relacion con los productos.
+Podemos ver que tenemos que usar los usuarios que ya se guardaron porque tiene el id que es un requerimiento necesario.
