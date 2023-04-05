@@ -1920,3 +1920,35 @@ En product:
 
 Como vemos la primera parte indica con que tabla se quiere relacionar y la segunda indica como se relacion la propiedad con la otra de la tabla.
 Con el eager en true hacemos que la consulta cargue los datos del usuario cuando se llama al producto.
+
+## Insertar userId en los productos
+
+En el controlador usamos el decorador para obtener al usuario
+
+```
+  @Post()
+  @Auth()
+  create(
+    @Body() createProductDto: CreateProductDto,
+    @GetUser() user: User,
+  ) {
+    return this.productsService.create(createProductDto, user);
+  }
+```
+
+Luego en el servicio creamos la relacion, enviando el user en el create:
+
+```
+      const product = this.productRepository.create({
+        ...productDetails,
+        images: images.map(image => this.productImageRepository.create({ url: image })),
+        user
+      });
+```
+
+Y en el update antes de guardarlo podemos especificar la relacion:
+
+```
+      product.user = user;
+      await queryRunner.manager.save(product);
+```
