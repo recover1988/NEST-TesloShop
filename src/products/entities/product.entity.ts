@@ -5,23 +5,38 @@ import { ApiProperty } from '@nestjs/swagger';
 
 @Entity({ name: 'products' })
 export class Product {
-    @ApiProperty()
+    @ApiProperty({
+        example: 'acasdasefasdasd213-131-23-41-fd',
+        description: 'Producto Id',
+        uniqueItems: true
+    })
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @ApiProperty()
+    @ApiProperty({
+        example: 'Teslo-Tshirt',
+        description: 'Product Title',
+        uniqueItems: true
+    })
     @Column('text', {
         unique: true,
     })
 
     title: string;
-    @ApiProperty()
+    @ApiProperty({
+        example: 0,
+        description: 'Producto Price',
+    })
     @Column('float', {
         default: 0
     })
     price: number;
 
-    @ApiProperty()
+    @ApiProperty({
+        example: 'lorem ipusemasdas',
+        description: 'Producto description',
+        default: null
+    })
     @Column({
         type: 'text',
         nullable: true,
@@ -40,7 +55,10 @@ export class Product {
     })
     stock: number;
 
-    @ApiProperty()
+    @ApiProperty({
+        example: ['S', 'M', 'L', 'XL'],
+        description: 'Producto sizes',
+    })
     @Column('text', {
         array: true
     })
