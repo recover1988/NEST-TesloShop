@@ -2141,3 +2141,42 @@ export class Product {
     .......
 }
 ```
+
+## Documentar DTO
+
+Podemos documentar los DTOS para saber como se ve la data con el `@ApiProperty`.
+
+```
+import { ApiProperty } from "@nestjs/swagger";
+import { IsArray, IsIn, IsInt, IsNumber, IsOptional, IsPositive, IsString, MinLength } from "class-validator";
+
+export class CreateProductDto {
+
+    @ApiProperty({
+        description: 'Product title(unique)',
+        nullable: false,
+        minLength: 1
+    })
+    @IsString()
+    @MinLength(1)
+    title: string;
+
+    @ApiProperty()
+    @IsNumber()
+    @IsPositive()
+    @IsOptional()
+    price?: number;
+.....
+....
+}
+```
+
+Y en el update simplemente cambiamos el import `PartialType` a `@nestjs/swagger`
+
+```
+import { PartialType } from '@nestjs/swagger';
+import { CreateProductDto } from './create-product.dto';
+
+export class UpdateProductDto extends PartialType(CreateProductDto) {}
+
+```
