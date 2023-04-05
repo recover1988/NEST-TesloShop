@@ -2006,3 +2006,25 @@ Y ahora podemos crear una funcion que guarde los usuarios y retorne un usuario p
 
 Luego mandamos el resultado de esta funcion para que cree la relacion con los productos.
 Podemos ver que tenemos que usar los usuarios que ya se guardaron porque tiene el id que es un requerimiento necesario.
+
+## 25 - Encriptar contraseña de usuarios del Seed
+
+Para ello tenemos que usar el bcrypt en la contraseña del seed:
+
+```
+import * as bcrypt from 'bcrypt';
+    users: [
+        {
+            email: 'test1@gmail.com',
+            fullName: 'eric denis',
+            password: bcrypt.hashSync('12345tres', 10),
+            role: ['admin']
+        },
+        {
+            email: 'test2@gmail.com',
+            fullName: 'lizeth gutierrez',
+            password: bcrypt.hashSync('12345tres', 10),
+            role: ['user', 'super']
+        },
+    ],
+```
