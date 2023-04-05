@@ -70,4 +70,11 @@ export class AuthService {
 
     throw new InternalServerErrorException('Please check server logs');
   }
+
+  async checkAuthStatus(user: User) {
+    return {
+      ...user,
+      token: this.getJwtToken({ id: user.id })
+    }
+  }
 }

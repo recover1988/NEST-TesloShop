@@ -2028,3 +2028,30 @@ import * as bcrypt from 'bcrypt';
         },
     ],
 ```
+
+## 26 - Check AuthStatus
+
+Para chequera el status podemos crear una nueva ruta para generar otro token:
+
+1. Creamos la nueva ruta:
+
+```
+  @Get('check-auth-status')
+  @Auth()
+  checkAuthStatus(
+    @GetUser() user: User,
+  ) {
+    return this.authService.checkAuthStatus(user);
+  }
+```
+
+@. Creamos en el servicio la funcione generadora:
+
+```
+  async checkAuthStatus(user: User) {
+    return {
+      ...user,
+      token: this.getJwtToken({ id: user.id })
+    }
+  }
+```
