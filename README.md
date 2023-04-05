@@ -2202,3 +2202,37 @@ UPDATE src/app.module.ts (1189 bytes)
 ```
 
 Podemos crear el resource y elegimos la opcion de websocket, se puede crear todo un crud pero por lo general solo se usa de manera muy especifica.
+
+## Server - Escichar conexiones y desconecciones
+
+El gateway tiene una sala por defecto que es el root.
+Podemos crear diferentes salas con el `namespace` y cada usuario que entre accede con un nombre o identificador que es unico.
+Para saber cuando se conecgta o desconecta un usuario tenemos que implementar dos interfaces:
+
+```
+import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway } from '@nestjs/websockets';
+import { MessagesWsService } from './messages-ws.service';
+import { Socket } from 'socket.io';
+
+@WebSocketGateway({ cors: true, namespace: '/' })
+export class MessagesWsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+
+  constructor(
+    private readonly messagesWsService: MessagesWsService
+
+  ) { }
+  handleConnection(client: Socket) {
+    console.log('Cliente conectado:', client.id)
+  }
+  handleDisconnect(client: Socket) {
+    console.log('Cliente desconectado:', client.id)
+  }
+
+}
+```
+
+Para tener las propiedades de socket debemos instalar:
+
+```
+npm i socket.io
+```
