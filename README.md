@@ -2080,3 +2080,64 @@ Antes del `app.listen` los labels los escribimos despues.
 Esta `docuemntacion` se habilita en el endpoin `api` como lo indica el ` SwaggerModule.setup`
 
 ## Tags, ApiProperty y ApiResponse
+
+Para agregar tags podemos usar el decorador `@ApiTags()` en el controlador del endpoint.
+
+```
+@ApiTags('Products')   <---
+@Controller('products')
+export class ProductsController {
+  constructor(private readonly productsService: ProductsService) { }
+............
+}
+```
+
+Tambien tiene diferentes opciones para ordenarlo.
+Si queremos mostrar el tipo de respuesta que da el endpoint usamos `@ApiResponse()` el cual damos un objeto con las propiedades.
+
+```
+  @Post()
+  @Auth()
+  @ApiResponse({ status: 201, description: 'Product was created', type:Product })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 403, description: 'Forbidden. Token relate' })
+  create(
+    @Body() createProductDto: CreateProductDto,
+    @GetUser() user: User,
+  ) {
+    return this.productsService.create(createProductDto, user);
+  }
+```
+
+Para indicar la repuesta tenemos que definirlo en la etiqueta `@ApiResponse()` como el `type` y pasarlo la entidad de la tabla y luego en ella definimos las propiedades con `@ApiProperty()`:
+
+```
+
+@Entity({ name: 'products' })
+export class Product {
+    @ApiProperty()    <--
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
+
+    @ApiProperty()    <--
+    @Column('text', {
+        unique: true,
+    })
+
+    title: string;
+    @ApiProperty()    <--
+    @Column('float', {
+        default: 0
+    })
+    price: number;
+
+    @ApiProperty()    <--
+    @Column({
+        type: 'text',
+        nullable: true,
+    })
+    description: string;
+    ............
+    .......
+}
+```
