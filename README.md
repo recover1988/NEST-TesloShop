@@ -2308,3 +2308,69 @@ export class MessagesWsGateway implements OnGatewayConnection, OnGatewayDisconne
   }
 }
 ```
+
+## Cliente - Detectar conexion y desconexion
+
+Para detectar la conexion podemos usar el `socket.on` que nos permite escuchar el servidor, si queremos emitir algun mensaje usarmos el `socket.emite`.
+
+```
+const addListeners = (socket: Socket) => {
+    const serverStatusLabel = document.querySelector('#server-status');
+    // escuchar el estado de la conexion
+    socket.on('connect', () => {
+        console.log('connected');
+        serverStatusLabel!.innerHTML = 'connected'
+    })
+    // si se cae la conexion
+    socket.on('disconnect', () => {
+        console.log('disconnected');
+        serverStatusLabel!.innerHTML = 'disconnected'
+    })
+}
+```
+
+## Cliente - Clientes conectados
+
+Para obtener info del server de manera total usamos un decorador que nos permite acceder a la info y poder usarla.
+
+```
+@WebSocketServer() wss: Server;
+```
+
+Ahora con `wss` podemos usarla en las funciones y emitir info al cliente
+
+```
+@WebSocketGateway({ cors: true, namespace: '/' })
+export class MessagesWsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+
+  @WebSocketServer() wss: Server;
+  constructor(
+    private readonly messagesWsService: MessagesWsService
+  ) { }
+  handleConnection(client: Socket) {
+    this.messagesWsService.registerClient(client);
+    this.wss.emit('clients-updated', this.messagesWsService.getConnectedClients())
+  }
+  handleDisconnect(client: Socket) {
+    this.messagesWsService.removeClient(client.id)
+    this.wss.emit('clients-updated', this.messagesWsService.getConnectedClients())
+  }
+
+}
+```
+
+Y desde el cliente podemos escuchar esta info y asi poderla imprimir:
+
+```
+ // escuchamos el servidor con los id de los clientes
+    socket.on('clients-updated', (clients: string[]) => {
+        // console.log({ clients })
+        let clientHtml = '';
+        clients.forEach(clientId => {
+            clientHtml = `
+                <li>${clientId}</li>
+            `
+        });
+        clientUl!.innerHTML = clientHtml
+    })
+```
